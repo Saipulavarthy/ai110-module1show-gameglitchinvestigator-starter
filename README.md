@@ -26,18 +26,22 @@ It wrote the code, ran away, and now the game is unplayable.
 ## 📝 Document Your Experience
 
 - [ ] Describe the game's purpose.
+This is a number-guessing game built with Streamlit. The player picks a difficulty (Easy, Normal, or Hard), then tries to guess a randomly chosen secret number within a limited number of attempts. After each guess the game gives a hint and adjusts the score. The goal is to guess the correct number before running out of attempts.
 - [ ] Detail which bugs you found.
+When I first played the game I noticed the hints were backwards — guessing too high showed "Go HIGHER!" and guessing too low showed "Go LOWER!", which made it impossible to make progress. The New Game button was also broken; clicking it changed the secret number internally but never reset the game status, score, or history, so the game stayed frozen in its end state and required a full page refresh to play again. There was also a hidden type mismatch bug where on every even-numbered attempt the secret number was cast to a string, causing the comparison to silently fail and making it impossible to win on those turns. On top of that, the check_guess function in logic_utils.py was never implemented — it just raised a NotImplementedError — and the existing tests were broken because they compared the full tuple return value to a plain string.
 - [ ] Explain what fixes you applied.
+I implemented check_guess in logic_utils.py by moving the logic from app.py and correcting the swapped hint messages so "Too High" returns "Go LOWER!" and "Too Low" returns "Go HIGHER!". I then fixed the New Game handler in app.py to reset st.session_state.status, score, and history so the game restarts immediately without a page refresh. I also removed the even-attempt block that was casting the secret to a string, ensuring both sides of the comparison are always integers. Finally I updated all three tests to unpack the tuple return value correctly and added a fourth regression test to guard against the type mismatch bug coming back.
 
 ## 📸 Demo Walkthrough
 
 Describe your fixed game in numbered steps so a reader can follow along without watching a video:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+1. User selects "Normal" difficulty — range is 1 to 100, 8 attempts allowed
+2. User enters a guess of 40 — game returns "Go HIGHER!" and score decreases by 5
+3. User enters a guess of 70 — game returns "Go LOWER!" and score decreases by 5
+4. User enters a guess of 55 — game returns "Go LOWER!" and score decreases by 5
+5. User enters a guess of 50 — game returns "🎉 Correct!" and final score is displayed
+6. User clicks New Game — score resets, new secret is generated, game is ready immediately without needing to refresh
 
 **Screenshot** *(optional)*: <!-- Insert a screenshot of your fixed, winning game here -->
 
@@ -45,8 +49,18 @@ Describe your fixed game in numbered steps so a reader can follow along without 
 
 ```
 # Paste your pytest output here, e.g.:
-# pytest tests/
-# ========================= X passed in 0.XXs =========================
+platform darwin -- Python 3.11.7, pytest-7.4.0, pluggy-1.0.0 -- /opt/anaconda3/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/harithaadhikarla/Desktop/CodePath/Project 1/ai110-module1show-gameglitchinvestigator-starter
+plugins: dash-3.2.0, anyio-4.2.0
+collected 4 items                                                                                                                                                       
+
+tests/test_game_logic.py::test_winning_guess PASSED                                                                                                               [ 25%]
+tests/test_game_logic.py::test_guess_too_high PASSED                                                                                                              [ 50%]
+tests/test_game_logic.py::test_guess_too_low PASSED                                                                                                               [ 75%]
+tests/test_game_logic.py::test_even_attempt_win PASSED                                                                                                            [100%]
+
+=========================================================================== 4 passed in 0.01s ===========================================================================
 ```
 
 ## 🚀 Stretch Features
